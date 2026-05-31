@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { TodoistTask, QuadrantType, getQuadrantFromTodoistPriority } from '../types';
 import { Check, Trash2, Calendar, Move } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useDraggable } from '@dnd-kit/core';
 
 interface TaskCardProps {
   task: TodoistTask;
@@ -30,6 +31,15 @@ export function TaskCard({
   const [isCompleting, setIsCompleting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showMoveMenu, setShowMoveMenu] = useState(false);
+
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: task.id,
+  });
+
+  const style = transform ? {
+    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+    zIndex: isDragging ? 50 : undefined,
+  } : undefined;
 
   const currentQuadrant = getQuadrantFromTodoistPriority(task.priority);
 
@@ -68,23 +78,13 @@ export function TaskCard({
       }}
     >
       <div
-        draggable
-        onDragStart={(e) => {
-          e.dataTransfer.setData('text/plain', task.id);
-          e.dataTransfer.effectAllowed = 'move';
-          if (onDragStart) {
-            onDragStart();
-          }
-          // Delay visual fade slightly so the browser doesn't snapshot a semi-transparent element as the drag image
-          const target = e.currentTarget;
-          setTimeout(() => {
-            target.classList.add('opacity-40');
-          }, 0);
-        }}
-        onDragEnd={(e) => {
-          e.currentTarget.classList.remove('opacity-40');
-        }}
-        className="relative group bg-[#0e111d]/50 hover:bg-[#13182a]/60 border border-[#1e293b]/50 hover:border-[#334155]/60 rounded-md py-1.5 pl-1.5 pr-2 shadow-sm cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-150"
+        ref={setNodeRef}
+        style={style}
+        {...listeners}
+        {...attributes}
+        className={`relative group bg-[#0e111d]/50 hover:bg-[#13182a]/60 border border-[#1e293b]/50 hover:border-[#334155]/60 rounded-md py-1.5 pl-1.5 pr-2 shadow-sm cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-150 ${
+          isDragging ? 'opacity-40' : ''
+        }`}
       >
       <div className="flex items-center gap-1.5 min-w-0 w-full pr-10">
         {/* Checkbox button */}

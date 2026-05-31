@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { TodoistTask, QuadrantType, QUADRANTS } from '../types';
 import { TaskCard } from './TaskCard';
 import { InlineAddTask } from './InlineAddTask';
 import { AlertTriangle, Calendar, Users, Trash2, CheckCircle, Maximize2, Minimize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useDroppable } from '@dnd-kit/core';
 
 interface QuadrantBoxProps {
   quadrant: QuadrantType;
@@ -31,7 +32,11 @@ export function QuadrantBox({
   isHidden = false
 }: QuadrantBoxProps) {
   const definition = QUADRANTS[quadrant];
-  const [isDragOver, setIsDragOver] = useState(false);
+  const { setNodeRef, isOver } = useDroppable({
+    id: quadrant,
+  });
+
+  const isDragOver = isOver;
 
   // Dynamic Lucide selection based on definition string
   const renderIcon = () => {
@@ -84,36 +89,10 @@ export function QuadrantBox({
 
   const theme = getThemeClasses();
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  };
-
-  const handleDragEnter = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = () => {
-    setIsDragOver(false);
-  };
-
-  const handleDropLocal = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    const taskId = e.dataTransfer.getData('text/plain');
-    if (taskId) {
-      onUpdateQuadrant(taskId, quadrant);
-    }
-  };
-
   return (
     <div
+      ref={setNodeRef}
       id={`quadrant-box-${quadrant}`}
-      onDragOver={handleDragOver}
-      onDragEnter={handleDragEnter}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDropLocal}
       className={`flex flex-col border-l-4 border-t border-b border-r rounded-lg transition-all duration-200 ${
         isHidden ? 'hidden' : ''
       } ${

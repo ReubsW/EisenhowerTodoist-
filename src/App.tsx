@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TodoistTask, QuadrantType, getQuadrantFromTodoistPriority, getTodoistPriorityFromQuadrant, QUADRANTS } from './types';
 import { QuadrantBox } from './components/QuadrantBox';
+import { DndContext, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { 
   CheckCircle, 
   RefreshCw, 
@@ -91,6 +92,32 @@ export default function App() {
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' | null }>({ message: '', type: null });
   const [showGuide, setShowGuide] = useState<boolean>(false);
   const [maximizedQuadrant, setMaximizedQuadrant] = useState<QuadrantType | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active) {
+      const taskId = String(active.id);
+      const targetQuadrant = over.id as QuadrantType;
+      
+      if (['Q1', 'Q2', 'Q3', 'Q4'].includes(targetQuadrant)) {
+        const task = tasks.find(t => t.id === taskId);
+        if (task) {
+          const currentQuadrant = getQuadrantFromTodoistPriority(task.priority);
+          if (currentQuadrant !== targetQuadrant) {
+            handleUpdateQuadrant(taskId, targetQuadrant);
+          }
+        }
+      }
+    }
+  };
 
   const handleToggleMaximize = (quadrant: QuadrantType) => {
     setMaximizedQuadrant(prev => prev === quadrant ? null : quadrant);
@@ -553,96 +580,98 @@ export default function App() {
               <p className="text-sm font-mono text-gray-400">Communicating with backend services...</p>
             </div>
           ) : (
-            <div className={maximizedQuadrant ? "w-full pb-2 animate-in fade-in zoom-in-95 duration-200" : "grid grid-cols-2 lg:grid-cols-[36px_1fr_1fr] gap-2 sm:gap-3.5 pb-2"}>
-              {/* Row 0: Column Labels (Only visible on lg screens and when not maximized) */}
-              {!maximizedQuadrant && (
-                <>
-                  <div className="hidden lg:block"></div> {/* Spacer for the left-row label */}
-                  
-                  <div className="hidden lg:block text-center py-1.5 rounded-lg bg-gradient-to-r from-rose-950/10 to-rose-950/5 border border-rose-500/10 select-none shadow-sm">
-                    <span className="text-[11px] font-bold font-mono tracking-widest text-rose-400">⚡ URGENT</span>
+            <DndContext sensors={sensors} onDragStart={handleDragStartTask} onDragEnd={handleDragEnd}>
+              <div className={maximizedQuadrant ? "w-full pb-2 animate-in fade-in zoom-in-95 duration-200" : "grid grid-cols-2 lg:grid-cols-[36px_1fr_1fr] gap-2 sm:gap-3.5 pb-2"}>
+                {/* Row 0: Column Labels (Only visible on lg screens and when not maximized) */}
+                {!maximizedQuadrant && (
+                  <>
+                    <div className="hidden lg:block"></div> {/* Spacer for the left-row label */}
+                    
+                    <div className="hidden lg:block text-center py-1.5 rounded-lg bg-gradient-to-r from-rose-950/10 to-rose-950/5 border border-rose-500/10 select-none shadow-sm">
+                      <span className="text-[11px] font-bold font-mono tracking-widest text-rose-400">⚡ URGENT</span>
+                    </div>
+                    
+                    <div className="hidden lg:block text-center py-1.5 rounded-lg bg-gradient-to-r from-amber-950/10 to-amber-950/5 border border-amber-500/10 select-none shadow-sm">
+                      <span className="text-[11px] font-bold font-mono tracking-widest text-amber-400">⏳ NOT URGENT</span>
+                    </div>
+                  </>
+                )}
+
+                {/* Row 1: IMPORTANT (Q1 & Q2) */}
+                {!maximizedQuadrant && (
+                  <div className="hidden lg:flex items-center justify-center py-2">
+                    <div className="font-mono text-[9px] font-black tracking-[0.2em] text-emerald-400 uppercase [writing-mode:vertical-lr] rotate-180 transform origin-center select-none whitespace-nowrap">
+                      ⭐ IMPORTANT
+                    </div>
                   </div>
-                  
-                  <div className="hidden lg:block text-center py-1.5 rounded-lg bg-gradient-to-r from-amber-950/10 to-amber-950/5 border border-amber-500/10 select-none shadow-sm">
-                    <span className="text-[11px] font-bold font-mono tracking-widest text-amber-400">⏳ NOT URGENT</span>
+                )}
+                
+                {/* Quadrant 1 - Urgent & Important */}
+                <QuadrantBox
+                  quadrant="Q1"
+                  tasks={getTasksByQuadrant('Q1')}
+                  onUpdateQuadrant={handleUpdateQuadrant}
+                  onCompleteTask={handleCompleteTask}
+                  onDeleteTask={handleDeleteTask}
+                  onAddTask={handleAddTask}
+                  isMaximized={maximizedQuadrant === 'Q1'}
+                  onToggleMaximize={() => handleToggleMaximize('Q1')}
+                  onDragStartTask={handleDragStartTask}
+                  isHidden={maximizedQuadrant !== null && maximizedQuadrant !== 'Q1'}
+                />
+
+                {/* Quadrant 2 - Important, Not Urgent */}
+                <QuadrantBox
+                  quadrant="Q2"
+                  tasks={getTasksByQuadrant('Q2')}
+                  onUpdateQuadrant={handleUpdateQuadrant}
+                  onCompleteTask={handleCompleteTask}
+                  onDeleteTask={handleDeleteTask}
+                  onAddTask={handleAddTask}
+                  isMaximized={maximizedQuadrant === 'Q2'}
+                  onToggleMaximize={() => handleToggleMaximize('Q2')}
+                  onDragStartTask={handleDragStartTask}
+                  isHidden={maximizedQuadrant !== null && maximizedQuadrant !== 'Q2'}
+                />
+
+                {/* Row 2: NOT IMPORTANT (Q3 & Q4) */}
+                {!maximizedQuadrant && (
+                  <div className="hidden lg:flex items-center justify-center py-2">
+                    <div className="font-mono text-[9px] font-black tracking-[0.2em] text-sky-400 uppercase [writing-mode:vertical-lr] rotate-180 transform origin-center select-none whitespace-nowrap">
+                      ☁️ UNIMPORTANT
+                    </div>
                   </div>
-                </>
-              )}
+                )}
 
-              {/* Row 1: IMPORTANT (Q1 & Q2) */}
-              {!maximizedQuadrant && (
-                <div className="hidden lg:flex items-center justify-center py-2">
-                  <div className="font-mono text-[9px] font-black tracking-[0.2em] text-emerald-400 uppercase [writing-mode:vertical-lr] rotate-180 transform origin-center select-none whitespace-nowrap">
-                    ⭐ IMPORTANT
-                  </div>
-                </div>
-              )}
-              
-              {/* Quadrant 1 - Urgent & Important */}
-              <QuadrantBox
-                quadrant="Q1"
-                tasks={getTasksByQuadrant('Q1')}
-                onUpdateQuadrant={handleUpdateQuadrant}
-                onCompleteTask={handleCompleteTask}
-                onDeleteTask={handleDeleteTask}
-                onAddTask={handleAddTask}
-                isMaximized={maximizedQuadrant === 'Q1'}
-                onToggleMaximize={() => handleToggleMaximize('Q1')}
-                onDragStartTask={handleDragStartTask}
-                isHidden={maximizedQuadrant !== null && maximizedQuadrant !== 'Q1'}
-              />
+                {/* Quadrant 3 - Urgent, Not Important */}
+                <QuadrantBox
+                  quadrant="Q3"
+                  tasks={getTasksByQuadrant('Q3')}
+                  onUpdateQuadrant={handleUpdateQuadrant}
+                  onCompleteTask={handleCompleteTask}
+                  onDeleteTask={handleDeleteTask}
+                  onAddTask={handleAddTask}
+                  isMaximized={maximizedQuadrant === 'Q3'}
+                  onToggleMaximize={() => handleToggleMaximize('Q3')}
+                  onDragStartTask={handleDragStartTask}
+                  isHidden={maximizedQuadrant !== null && maximizedQuadrant !== 'Q3'}
+                />
 
-              {/* Quadrant 2 - Important, Not Urgent */}
-              <QuadrantBox
-                quadrant="Q2"
-                tasks={getTasksByQuadrant('Q2')}
-                onUpdateQuadrant={handleUpdateQuadrant}
-                onCompleteTask={handleCompleteTask}
-                onDeleteTask={handleDeleteTask}
-                onAddTask={handleAddTask}
-                isMaximized={maximizedQuadrant === 'Q2'}
-                onToggleMaximize={() => handleToggleMaximize('Q2')}
-                onDragStartTask={handleDragStartTask}
-                isHidden={maximizedQuadrant !== null && maximizedQuadrant !== 'Q2'}
-              />
-
-              {/* Row 2: NOT IMPORTANT (Q3 & Q4) */}
-              {!maximizedQuadrant && (
-                <div className="hidden lg:flex items-center justify-center py-2">
-                  <div className="font-mono text-[9px] font-black tracking-[0.2em] text-sky-400 uppercase [writing-mode:vertical-lr] rotate-180 transform origin-center select-none whitespace-nowrap">
-                    ☁️ UNIMPORTANT
-                  </div>
-                </div>
-              )}
-
-              {/* Quadrant 3 - Urgent, Not Important */}
-              <QuadrantBox
-                quadrant="Q3"
-                tasks={getTasksByQuadrant('Q3')}
-                onUpdateQuadrant={handleUpdateQuadrant}
-                onCompleteTask={handleCompleteTask}
-                onDeleteTask={handleDeleteTask}
-                onAddTask={handleAddTask}
-                isMaximized={maximizedQuadrant === 'Q3'}
-                onToggleMaximize={() => handleToggleMaximize('Q3')}
-                onDragStartTask={handleDragStartTask}
-                isHidden={maximizedQuadrant !== null && maximizedQuadrant !== 'Q3'}
-              />
-
-              {/* Quadrant 4 - Neither (Backlog) */}
-              <QuadrantBox
-                quadrant="Q4"
-                tasks={getTasksByQuadrant('Q4')}
-                onUpdateQuadrant={handleUpdateQuadrant}
-                onCompleteTask={handleCompleteTask}
-                onDeleteTask={handleDeleteTask}
-                onAddTask={handleAddTask}
-                isMaximized={maximizedQuadrant === 'Q4'}
-                onToggleMaximize={() => handleToggleMaximize('Q4')}
-                onDragStartTask={handleDragStartTask}
-                isHidden={maximizedQuadrant !== null && maximizedQuadrant !== 'Q4'}
-              />
-            </div>
+                {/* Quadrant 4 - Neither (Backlog) */}
+                <QuadrantBox
+                  quadrant="Q4"
+                  tasks={getTasksByQuadrant('Q4')}
+                  onUpdateQuadrant={handleUpdateQuadrant}
+                  onCompleteTask={handleCompleteTask}
+                  onDeleteTask={handleDeleteTask}
+                  onAddTask={handleAddTask}
+                  isMaximized={maximizedQuadrant === 'Q4'}
+                  onToggleMaximize={() => handleToggleMaximize('Q4')}
+                  onDragStartTask={handleDragStartTask}
+                  isHidden={maximizedQuadrant !== null && maximizedQuadrant !== 'Q4'}
+                />
+              </div>
+            </DndContext>
           )}
         </div>
 
