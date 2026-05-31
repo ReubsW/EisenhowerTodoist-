@@ -84,6 +84,29 @@ const MOCK_TASKS: TodoistTask[] = [
   }
 ];
 
+const getHostEnvironment = () => {
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+  if (hostname.includes('vercel.app')) {
+    return {
+      name: 'Vercel',
+      instructionText: 'Configure the TODOIST_API_TOKEN environment variable in your Vercel Project Dashboard (Settings → Environment Variables) and trigger a deployment sync',
+      apiTokenPlacement: 'Add to Vercel Environment Variables as'
+    };
+  }
+  if (hostname.includes('.run.app') || hostname.includes('google')) {
+    return {
+      name: 'AI Studio',
+      instructionText: 'If you created a Todoist "App Integration" in the developer portal, you will see several credentials. Configure the secret variable TODOIST_API_TOKEN in your AI Studio project settings',
+      apiTokenPlacement: 'Add to AI Studio Secrets as'
+    };
+  }
+  return {
+    name: 'Standalone',
+    instructionText: 'Configure the TODOIST_API_TOKEN environment variable in your production deployment settings panel',
+    apiTokenPlacement: 'Add to Environment Variables as'
+  };
+};
+
 export default function App() {
   const [tasks, setTasks] = useState<TodoistTask[]>([]);
   const [isLiveMode, setIsLiveMode] = useState<boolean>(false);
@@ -464,16 +487,19 @@ export default function App() {
           <div className="bg-gradient-to-r from-[#171317] to-[#121223] border border-amber-900/40 rounded-xl p-6 shadow-xl space-y-4">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5 border-b border-amber-950/40 pb-4">
               <div className="space-y-1.5">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="flex h-2 w-2 relative">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
                   </span>
                   <span className="text-xs uppercase font-bold tracking-wider text-amber-400 font-mono">Integration Pending Setup</span>
+                  <span className="px-1.5 py-0.5 text-[9px] rounded font-mono bg-amber-950/40 border border-amber-900/35 text-amber-300 font-semibold uppercase">
+                    Host: {getHostEnvironment().name}
+                  </span>
                 </div>
                 <h2 className="text-sm font-semibold text-white">How to connect your Todoist account?</h2>
                 <p className="text-xs text-gray-400 leading-relaxed font-light">
-                  To sync your real tasks, you need to configure the correct secret variable. If you created a Todoist "App Integration" in the developer portal, you will see several credentials. Here is exactly what to do with each of them:
+                  To sync your real tasks on your custom host, you need to configure the correct credentials. {getHostEnvironment().instructionText}. Here is exactly what to do with each of them:
                 </p>
               </div>
               <button
@@ -500,7 +526,7 @@ export default function App() {
                   <strong>Personal Token</strong>: Found in Todoist <strong className="text-gray-300">Settings → Integrations → Developer API Token</strong>, or the <strong className="text-gray-300">"Test Token"</strong> at the bottom of your App console.
                 </p>
                 <div className="pt-1 text-[10px] font-mono text-emerald-300/90 leading-tight">
-                  Add to AI Studio Secrets as <code className="bg-slate-900 border border-slate-800 px-1 py-0.5 rounded text-[9px] text-rose-300">TODOIST_API_TOKEN</code>
+                  {getHostEnvironment().apiTokenPlacement} <code className="bg-slate-900 border border-slate-800 px-1 py-0.5 rounded text-[9px] text-rose-300">TODOIST_API_TOKEN</code>
                 </div>
               </div>
 
