@@ -209,8 +209,19 @@ export default function App() {
         setTasks(data);
         triggerNotification("Successfully synchronized live tasks from Todoist.", "success");
       } else {
-        const errData = await res.json();
-        throw new Error(errData.error || "Failed to fetch tasks from server.");
+        let errorMsg = "Failed to fetch tasks from server.";
+        try {
+          const text = await res.text();
+          try {
+            const errData = JSON.parse(text);
+            errorMsg = errData.error || errorMsg;
+          } catch {
+            errorMsg = text || `Server returned status ${res.status}: ${res.statusText}`;
+          }
+        } catch {
+          errorMsg = `Server returned status ${res.status}`;
+        }
+        throw new Error(errorMsg);
       }
     } catch (err: any) {
       console.error(err);
@@ -253,8 +264,19 @@ export default function App() {
       });
 
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || "Error creating task on backend.");
+        let errorMsg = "Error creating task on backend.";
+        try {
+          const text = await response.text();
+          try {
+            const errData = JSON.parse(text);
+            errorMsg = errData.error || errorMsg;
+          } catch {
+            errorMsg = text || `Server returned status ${response.status}: ${response.statusText}`;
+          }
+        } catch {
+          errorMsg = `Server returned status ${response.status}`;
+        }
+        throw new Error(errorMsg);
       }
 
       const createdTask = await response.json();

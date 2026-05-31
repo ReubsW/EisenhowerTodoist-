@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { TodoistTask, QuadrantType, getQuadrantFromTodoistPriority } from '../types';
-import { Check, Trash2, Calendar, Move } from 'lucide-react';
+import { Check, Calendar } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useDraggable } from '@dnd-kit/core';
 
@@ -86,7 +86,7 @@ export function TaskCard({
           isDragging ? 'opacity-40' : ''
         }`}
       >
-      <div className="flex items-center gap-1.5 min-w-0 w-full pr-10">
+      <div className="flex items-center gap-1.5 min-w-0 w-full pr-1">
         {/* Checkbox button */}
         <button
           onClick={handleComplete}
@@ -162,78 +162,6 @@ export function TaskCard({
             </div>
           )}
         </div>
-      </div>
-
-      {/* Action overlay - always visible on touch/mobile screens, and visible on hover for desktop screens */}
-      <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1 select-none opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-150 z-10 animate-in fade-in duration-100">
-        {/* Quick Move Popover for touchscreen compatibility */}
-        <div className="relative">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowMoveMenu(!showMoveMenu);
-            }}
-            className={`p-1 rounded border shadow-sm transition-all duration-150 cursor-pointer flex items-center justify-center ${
-              showMoveMenu
-                ? 'text-emerald-400 bg-[#141b2c] border-emerald-500/50'
-                : 'text-slate-400 hover:text-white bg-[#0d101a] border-[#1e293b] hover:bg-[#141b2c]'
-            }`}
-            title="Move to another quadrant"
-          >
-            <Move className="w-2.5 h-2.5" />
-          </button>
-
-          {showMoveMenu && (
-            <>
-              {/* Click-away backdrop overlay */}
-              <div
-                className="fixed inset-0 z-[40] cursor-default bg-transparent"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowMoveMenu(false);
-                }}
-              />
-              
-              {/* Dropup-aligned absolute card */}
-              <div className="absolute right-0 bottom-full mb-1.5 w-42 bg-[#0c0f1a] border border-[#1e293d] rounded-md shadow-2xl py-1 z-[50] animate-in fade-in slide-in-from-bottom-1 duration-150">
-                <div className="px-2 py-0.5 text-[8px] font-mono tracking-wider text-slate-500 border-b border-slate-800/60 uppercase mb-1">
-                  Send to quadrant:
-                </div>
-                {quadrantsList.map((q) => (
-                  <button
-                    key={q.key}
-                    disabled={q.key === currentQuadrant}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onUpdateQuadrant(task.id, q.key);
-                      setShowMoveMenu(false);
-                    }}
-                    className={`w-full text-left px-2 py-1 text-[10px] font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
-                      q.key === currentQuadrant
-                        ? 'text-slate-600 bg-slate-900/40 cursor-not-allowed'
-                        : 'text-slate-300 hover:bg-[#141b2c] hover:text-white'
-                    }`}
-                  >
-                    <span className="text-[9.5px] shrink-0">{q.icon}</span>
-                    <span className="truncate">{q.label}</span>
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Delete action */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleDelete();
-          }}
-          className="text-slate-400 hover:text-rose-500 p-1 rounded bg-[#0d101a] border border-[#1e293b] shadow-md hover:bg-[#141b2c] transition-all cursor-pointer flex items-center justify-center"
-          title="Delete task"
-        >
-          <Trash2 className="w-2.5 h-2.5" />
-        </button>
       </div>
       </div>
     </motion.div>

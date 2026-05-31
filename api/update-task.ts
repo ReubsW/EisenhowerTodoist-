@@ -23,7 +23,7 @@ export default async function handler(req: any, res: any) {
     if (content !== undefined) updateBody.content = content;
     if (description !== undefined) updateBody.description = description;
 
-    const response = await fetch(`https://api.todoist.com/api/v1/tasks/${id}`, {
+    const response = await fetch(`https://api.todoist.com/rest/v2/tasks/${id}`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -54,7 +54,7 @@ export default async function handler(req: any, res: any) {
         id: t.id,
         content: t.content,
         description: t.description || "",
-        is_completed: t.checked || false,
+        is_completed: t.is_completed || t.checked || false,
         priority: t.priority || 1,
         url: t.url || "https://todoist.com"
       };
