@@ -93,11 +93,34 @@ const parseAndCheckTodoistResponseText = (text: string, status: number): { error
 };
 
 // Check API status & configuration
-app.get("/api/config-status", (req, res) => {
+app.get("/api/config-status", async (req, res) => {
   const token = getTodoistToken();
   const isOk = typeof token === "string" && token.length > 0;
+  
+  let testStatus = null;
+  let testText = "";
+  let debugTokenValue = "";
+  if (isOk && token) {
+    debugTokenValue = token.substring(0, Math.min(5, token.length)) + "..." + token.substring(Math.max(0, token.length - 4));
+    try {
+      const response = await fetch("https://api.todoist.com/api/v1/tasks", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      testStatus = response.status;
+      testText = await response.text();
+    } catch (err: any) {
+      testText = "Error during fetch: " + err?.message;
+    }
+  }
+
   res.json({
     configured: isOk,
+    debugToken: debugTokenValue,
+    testStatus,
+    testText,
     message: isOk 
       ? "Todoist token is configured successfully." 
       : "No Todoist API Token found. Please set TODOIST_API_TOKEN in the AI Studio Secrets panel."
@@ -112,7 +135,7 @@ app.get("/api/get-tasks", async (req, res) => {
   }
 
   try {
-    const response = await fetch("https://api.todoist.com/rest/v2/tasks", {
+    const response = await fetch("https://api.todoist.com/api/v1/tasks", {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`
@@ -136,7 +159,16 @@ app.get("/api/get-tasks", async (req, res) => {
     }
 
     try {
-      const tasks = JSON.parse(text);
+      const raw = JSON.parse(text);
+      const results = Array.isArray(raw) ? raw : (raw?.results || []);
+      const tasks = results.map((t: any) => ({
+        id: t.id,
+        content: t.content,
+        description: t.description || "",
+        is_completed: t.checked || false,
+        priority: t.priority || 1,
+        url: t.url || "https://todoist.com"
+      }));
       return res.json(tasks);
     } catch {
       return res.status(500).json({ error: "Todoist Parse Error: Failed to decode JSON task payload." });
@@ -160,7 +192,7 @@ app.post("/api/create-task", async (req, res) => {
   }
 
   try {
-    const response = await fetch("https://api.todoist.com/rest/v2/tasks", {
+    const response = await fetch("https://api.todoist.com/api/v1/tasks", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -190,8 +222,16 @@ app.post("/api/create-task", async (req, res) => {
     }
 
     try {
-      const task = JSON.parse(text);
-      return res.json(task);
+      const t = JSON.parse(text);
+      const mappedTask = {
+        id: t.id,
+        content: t.content,
+        description: t.description || "",
+        is_completed: t.checked || false,
+        priority: t.priority || 1,
+        url: t.url || "https://todoist.com"
+      };
+      return res.json(mappedTask);
     } catch {
       return res.status(500).json({ error: "Todoist Parse Error: Failed to decode created task details." });
     }
@@ -219,7 +259,7 @@ app.post("/api/update-task", async (req, res) => {
     if (content !== undefined) updateBody.content = content;
     if (description !== undefined) updateBody.description = description;
 
-    const response = await fetch(`https://api.todoist.com/rest/v2/tasks/${id}`, {
+    const response = await fetch(`https://api.todoist.com/api/v1/tasks/${id}`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -245,8 +285,16 @@ app.post("/api/update-task", async (req, res) => {
     }
 
     try {
-      const task = JSON.parse(text);
-      return res.json(task);
+      const t = JSON.parse(text);
+      const mappedTask = {
+        id: t.id,
+        content: t.content,
+        description: t.description || "",
+        is_completed: t.checked || false,
+        priority: t.priority || 1,
+        url: t.url || "https://todoist.com"
+      };
+      return res.json(mappedTask);
     } catch {
       return res.status(500).json({ error: "Todoist Parse Error: Failed to decode updated task details." });
     }
@@ -269,7 +317,7 @@ app.post("/api/complete-task", async (req, res) => {
   }
 
   try {
-    const response = await fetch(`https://api.todoist.com/rest/v2/tasks/${id}/close`, {
+    const response = await fetch(`https://api.todoist.com/api/v1/tasks/${id}/close`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`
@@ -312,7 +360,7 @@ app.post("/api/delete-task", async (req, res) => {
   }
 
   try {
-    const response = await fetch(`https://api.todoist.com/rest/v2/tasks/${id}`, {
+    const response = await fetch(`https://api.todoist.com/api/v1/tasks/${id}`, {
       method: "DELETE",
       headers: {
         "Authorization": `Bearer ${token}`

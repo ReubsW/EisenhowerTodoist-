@@ -18,7 +18,7 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const response = await fetch(`https://api.todoist.com/rest/v2/tasks/${id}`, {
+    const response = await fetch(`https://api.todoist.com/api/v1/tasks/${id}`, {
       method: "DELETE",
       headers: {
         "Authorization": `Bearer ${token}`

@@ -13,7 +13,7 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const response = await fetch("https://api.todoist.com/rest/v2/tasks", {
+    const response = await fetch("https://api.todoist.com/api/v1/tasks", {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`
@@ -37,7 +37,16 @@ export default async function handler(req: any, res: any) {
     }
 
     try {
-      const tasks = JSON.parse(text);
+      const raw = JSON.parse(text);
+      const results = Array.isArray(raw) ? raw : (raw?.results || []);
+      const tasks = results.map((t: any) => ({
+        id: t.id,
+        content: t.content,
+        description: t.description || "",
+        is_completed: t.checked || false,
+        priority: t.priority || 1,
+        url: t.url || "https://todoist.com"
+      }));
       return res.status(200).json(tasks);
     } catch {
       return res.status(500).json({ error: "Todoist Parse Error: Failed to decode JSON task payload." });
