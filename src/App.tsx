@@ -14,7 +14,9 @@ import {
   Check, 
   ExternalLink,
   Github,
-  Award
+  Award,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 const MOCK_TASKS: TodoistTask[] = [
@@ -115,6 +117,12 @@ export default function App() {
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' | null }>({ message: '', type: null });
   const [showGuide, setShowGuide] = useState<boolean>(false);
   const [maximizedQuadrant, setMaximizedQuadrant] = useState<QuadrantType | null>(null);
+  const [isDismissed, setIsDismissed] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("todoist_setup_dismissed") === "true";
+    }
+    return false;
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -411,22 +419,32 @@ export default function App() {
               <span>{showGuide ? "Hide Matrix Guide" : "How it Works"}</span>
             </button>
 
+            {/* Setup Instructions toggle */}
+            <button
+              onClick={() => {
+                const nextVal = !isDismissed;
+                setIsDismissed(nextVal);
+                localStorage.setItem("todoist_setup_dismissed", String(nextVal));
+                triggerNotification(nextVal ? "Setup instructions panel minimized." : "Setup instructions panel displayed.", "info");
+              }}
+              className="px-3.5 py-1.5 rounded-lg border border-slate-800 bg-[#0d1222] hover:bg-slate-900 text-xs font-semibold text-gray-300 flex items-center gap-1.5 cursor-pointer hover:text-white transition-colors"
+              title="Toggle display of the Todoist Integration Setup guide"
+            >
+              {isDismissed ? <Eye className="w-4 h-4 text-amber-500" /> : <EyeOff className="w-4 h-4 text-gray-400" />}
+              <span>{isDismissed ? "Show Setup Guide" : "Hide Setup Guide"}</span>
+            </button>
+
             {/* Mode Indicators & Selectors */}
             <div className="bg-slate-950 p-1 rounded-lg border border-slate-900 flex items-center gap-1">
               <button
                 onClick={() => {
-                  if (isConfigured) {
-                    setIsLiveMode(true);
-                    fetchLiveTasks();
-                  } else {
-                    triggerNotification("Cannot activate live sync: provide TODOIST_API_TOKEN in Secrets.", "error");
-                  }
+                  setIsLiveMode(true);
+                  fetchLiveTasks();
                 }}
-                disabled={!isConfigured}
                 className={`px-3 py-1 text-xs rounded-md font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
                   isLiveMode 
                     ? 'bg-rose-500 text-white shadow' 
-                    : 'text-gray-400 hover:text-gray-200 disabled:opacity-30'
+                    : 'text-gray-400 hover:text-gray-200'
                 }`}
               >
                 <span className={`w-1.5 h-1.5 rounded-full ${isLiveMode ? 'bg-white animate-pulse' : 'bg-gray-500'}`} />
@@ -483,7 +501,7 @@ export default function App() {
         )}
 
         {/* Setup Assistant Banner if not configured */}
-        {!isConfigured && (
+        {!isConfigured && !isDismissed && (
           <div className="bg-gradient-to-r from-[#171317] to-[#121223] border border-amber-900/40 rounded-xl p-6 shadow-xl space-y-4">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5 border-b border-amber-950/40 pb-4">
               <div className="space-y-1.5">
@@ -502,17 +520,30 @@ export default function App() {
                   To sync your real tasks on your custom host, you need to configure the correct credentials. {getHostEnvironment().instructionText}. Here is exactly what to do with each of them:
                 </p>
               </div>
-              <button
-                onClick={() => {
-                  setIsLiveMode(false);
-                  setTasks(MOCK_TASKS);
-                  triggerNotification("Interactive mock playground prepared below.", "success");
-                }}
-                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs text-gray-200 hover:text-white rounded-lg font-medium shadow shrink-0 self-stretch md:self-auto flex items-center justify-center gap-2 cursor-pointer transition-colors"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>Explore Interactive Demo</span>
-              </button>
+              <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto self-stretch md:self-auto">
+                <button
+                  onClick={() => {
+                    setIsDismissed(true);
+                    localStorage.setItem("todoist_setup_dismissed", "true");
+                    triggerNotification("Setup instructions hidden. You can reveal them anytime using the 'Show Setup Guide' button at the top.", "info");
+                  }}
+                  className="px-4 py-2 bg-[#1c1212] hover:bg-[#251717] border border-amber-900/40 text-xs text-amber-200 hover:text-amber-100 rounded-lg font-medium shadow shrink-0 flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                >
+                  <EyeOff className="w-3.5 h-3.5" />
+                  <span>Hide Setup Info</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setIsLiveMode(false);
+                    setTasks(MOCK_TASKS);
+                    triggerNotification("Interactive mock playground prepared below.", "success");
+                  }}
+                  className="px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs text-gray-200 hover:text-white rounded-lg font-medium shadow shrink-0 flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Explore Interactive Demo</span>
+                </button>
+              </div>
             </div>
 
             {/* Explanatory breakdown column cards */}
