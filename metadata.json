@@ -1,0 +1,6 @@
+{
+  "name": "Eisenhower Matrix Task Manager",
+  "description": "A full-stack personal task manager utilizing the Eisenhower Decision Matrix powered by Todoist backend sync.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

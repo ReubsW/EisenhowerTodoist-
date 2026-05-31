@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+body {
+  @apply bg-[#0b0f19] text-gray-100 antialiased font-sans selection:bg-rose-500/30 selection:text-white;
+  margin: 0;
+  padding: 0;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0d1222;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1f2a47;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #31426d;
+}
+
+/* Active drag-over container transition and border glow pulse */
+.active-drop {
+  animation: activeDropGlowPulse 1.5s infinite alternate ease-in-out !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+@keyframes activeDropGlowPulse {
+  0% {
+    box-shadow: 0 0 12px rgba(244, 63, 94, 0.1), 0 0 1px currentColor;
+    filter: brightness(1.05);
+  }
+  100% {
+    box-shadow: 0 0 25px rgba(244, 63, 94, 0.4), 0 0 4px currentColor;
+    filter: brightness(1.2) saturate(1.1);
+  }
+}
+
