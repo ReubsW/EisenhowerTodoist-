@@ -136,9 +136,9 @@ export function TaskCard({
         {/* Core Content Column */}
         <div className="min-w-0 flex-1 flex flex-col justify-center">
           <div className="flex flex-col min-w-0 gap-0.5">
-            {task.url ? (
+            {task.id ? (
               <a
-                href={task.url}
+                href={`https://app.todoist.com/app/task/${task.id}`}
                 target="_blank"
                 rel="noreferrer"
                 className={`block text-[11.5px] sm:text-[12px] font-medium text-gray-900 dark:text-slate-100 hover:text-rose-500 dark:hover:text-rose-400 hover:underline transition-colors break-words overflow-hidden leading-snug ${
