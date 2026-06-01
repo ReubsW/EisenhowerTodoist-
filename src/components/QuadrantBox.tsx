@@ -93,6 +93,7 @@ export function QuadrantBox({
     <div
       ref={setNodeRef}
       id={`quadrant-box-${quadrant}`}
+      style={{ touchAction: 'none' }}
       className={`flex flex-col border-l-4 border-t border-b border-r rounded-lg transition-all duration-200 ${
         isHidden ? 'hidden' : ''
       } ${
@@ -164,15 +165,16 @@ export function QuadrantBox({
             </motion.div>
           ) : (
             tasks.map((task) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                onUpdateQuadrant={onUpdateQuadrant}
-                onCompleteTask={onCompleteTask}
-                onDeleteTask={onDeleteTask}
-                showFullDetails={isMaximized}
-                onDragStart={onDragStartTask}
-              />
+              <motion.div key={task.id} style={{ touchAction: 'none' }}>
+                <TaskCard
+                  task={task}
+                  onUpdateQuadrant={onUpdateQuadrant}
+                  onCompleteTask={onCompleteTask}
+                  onDeleteTask={onDeleteTask}
+                  showFullDetails={isMaximized}
+                  onDragStart={onDragStartTask}
+                />
+              </motion.div>
             ))
           )}
         </AnimatePresence>
