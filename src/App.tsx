@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TodoistTask, QuadrantType, getQuadrantFromTodoistPriority, getTodoistPriorityFromQuadrant, QUADRANTS } from './types';
 import { QuadrantBox } from './components/QuadrantBox';
-import { DndContext, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { 
   CheckCircle, 
   RefreshCw, 
@@ -58,9 +58,10 @@ export default function App() {
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
+      activationConstraint: { distance: 8 },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 250, tolerance: 5 },
     })
   );
 
