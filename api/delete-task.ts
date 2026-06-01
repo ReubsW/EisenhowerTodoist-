@@ -1,6 +1,6 @@
 import { getTodoistToken, parseAndCheckTodoistResponseText } from "./_utils";
 
-export default async function handler(req: any, res: any) {
+export default async function handler(req, res) {
   if (req.method !== "POST" && req.method !== "DELETE") {
     return res.status(405).json({ error: "Method not allowed. Use POST or DELETE instead." });
   }
