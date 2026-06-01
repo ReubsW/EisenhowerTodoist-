@@ -1,4 +1,4 @@
-const { getTodoistToken, parseAndCheckTodoistResponseText } = require("./_utils");
+import { getTodoistToken, parseAndCheckTodoistResponseText } from "./_utils.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {

@@ -1,6 +1,6 @@
 // Shared backend utils for Vercel Serverless Functions
 
-const getTodoistToken = (): string | undefined => {
+export const getTodoistToken = (): string | undefined => {
   let token = process.env.TODOIST_API_TOKEN;
   if (!token) return undefined;
   
@@ -29,7 +29,7 @@ const getTodoistToken = (): string | undefined => {
   return token;
 };
 
-const parseAndCheckTodoistResponseText = (
+export const parseAndCheckTodoistResponseText = (
   text: string,
   status: number
 ): { errorMsg: string } | null => {
@@ -77,4 +77,3 @@ const parseAndCheckTodoistResponseText = (
   return null;
 };
 
-module.exports = { getTodoistToken, parseAndCheckTodoistResponseText };
