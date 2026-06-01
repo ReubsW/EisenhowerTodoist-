@@ -19,73 +19,6 @@ import {
   EyeOff
 } from 'lucide-react';
 
-const MOCK_TASKS: TodoistTask[] = [
-  {
-    id: "mock-1",
-    content: "Deploy hotfix for JWT session token crash",
-    description: "Urgent fix for auth cookie parsing on node backend endpoint.",
-    is_completed: false,
-    priority: 4, // Q1
-    url: "https://todoist.com"
-  },
-  {
-    id: "mock-2",
-    content: "Submit department quarterly roadmap & budget review slides",
-    description: "Align with stakeholders on database server allocations.",
-    is_completed: false,
-    priority: 4, // Q1
-    url: "https://todoist.com"
-  },
-  {
-    id: "mock-3",
-    content: "Design schema and Compound Indexes for client search speed",
-    description: "Add index on (user_id, status, created_at) to speed up explorer query.",
-    is_completed: false,
-    priority: 3, // Q2
-    url: "https://todoist.com"
-  },
-  {
-    id: "mock-4",
-    content: "Refactor frontend matrix viewport layout",
-    description: "Switch panels to native CSS Grid columns to prevent reflow flickering.",
-    is_completed: false,
-    priority: 3, // Q2
-    url: "https://todoist.com"
-  },
-  {
-    id: "mock-5",
-    content: "Respond to prospective contractor email inquiry",
-    description: "Confirm initial technical vetting schedule and screening criteria.",
-    is_completed: false,
-    priority: 2, // Q3
-    url: "https://todoist.com"
-  },
-  {
-    id: "mock-6",
-    content: "Cancel outdated developer playground sandboxes",
-    description: "Prevent upcoming auto-renewals for secondary telemetry tools.",
-    is_completed: false,
-    priority: 2, // Q3
-    url: "https://todoist.com"
-  },
-  {
-    id: "mock-7",
-    content: "Prune cluttered desktop folder screenshots",
-    description: "Archive random screenshots taken over the previous quarter.",
-    is_completed: false,
-    priority: 1, // Q4
-    url: "https://todoist.com"
-  },
-  {
-    id: "mock-8",
-    content: "Check early-bird registration discounts for conference",
-    description: "Review whether our training budget covers individual seats.",
-    is_completed: false,
-    priority: 1, // Q4
-    url: "https://todoist.com"
-  }
-];
-
 const getHostEnvironment = () => {
   const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
   if (hostname.includes('vercel.app')) {
@@ -111,7 +44,6 @@ const getHostEnvironment = () => {
 
 export default function App() {
   const [tasks, setTasks] = useState<TodoistTask[]>([]);
-  const [isLiveMode, setIsLiveMode] = useState<boolean>(false);
   const [isConfigured, setIsConfigured] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' | null }>({ message: '', type: null });
@@ -179,22 +111,13 @@ export default function App() {
         const data = await res.json();
         setIsConfigured(data.configured);
         if (data.configured) {
-          setIsLiveMode(true);
           await fetchLiveTasks();
         } else {
-          // Fallback to local mock data
-          setIsLiveMode(false);
-          setTasks(MOCK_TASKS);
-          triggerNotification("Todoist API Key absent. Running in Sandbox Demo Mode.", "info");
+          triggerNotification("Todoist API Key absent. Please configure the requested environment variables.", "info");
         }
-      } else {
-        setIsLiveMode(false);
-        setTasks(MOCK_TASKS);
       }
     } catch (err) {
       console.error("Failed to connect to backend configuration endpoint:", err);
-      setIsLiveMode(false);
-      setTasks(MOCK_TASKS);
     } finally {
       setIsLoading(false);
     }
@@ -226,11 +149,6 @@ export default function App() {
     } catch (err: any) {
       console.error(err);
       triggerNotification(err.message || "Network error loading Todoist tasks.", "error");
-      // Fallback to mock so user profile doesn't show blank page
-      if (tasks.length === 0) {
-        setTasks(MOCK_TASKS);
-        setIsLiveMode(false);
-      }
     } finally {
       setIsLoading(false);
     }
@@ -239,21 +157,6 @@ export default function App() {
   // Add Task handler
   const handleAddTask = async (content: string, description: string, quadrant: QuadrantType): Promise<boolean> => {
     const apiPriority = getTodoistPriorityFromQuadrant(quadrant);
-    
-    if (!isLiveMode) {
-      // Offline local creation
-      const newMockTask: TodoistTask = {
-        id: `local-mock-${Date.now()}`,
-        content,
-        description,
-        is_completed: false,
-        priority: apiPriority,
-        url: "https://todoist.com"
-      };
-      setTasks(prev => [newMockTask, ...prev]);
-      triggerNotification(`Created "${content}" inside ${quadrant} locally.`, "success");
-      return true;
-    }
 
     // Live backend creation
     try {
@@ -309,11 +212,6 @@ export default function App() {
     setTasks(updatedTasks);
     triggerNotification(`Moved task to ${targetQuadrant} (${QUADRANTS[targetQuadrant].name})`, "success");
 
-    if (!isLiveMode) {
-      // Local mode does not require actual fetch
-      return;
-    }
-
     // Dispatch live request
     try {
       const response = await fetch('/api/update-task', {
@@ -343,8 +241,6 @@ export default function App() {
     setTasks(updatedTasks);
     triggerNotification("Completed task!", "success");
 
-    if (!isLiveMode) return;
-
     try {
       const response = await fetch('/api/complete-task', {
         method: 'POST',
@@ -368,8 +264,6 @@ export default function App() {
     const originalTaskList = [...tasks];
     setTasks(prev => prev.filter(t => t.id !== taskId));
     triggerNotification("Deleted task.", "info");
-
-    if (!isLiveMode) return;
 
     try {
       const response = await fetch('/api/delete-task', {
@@ -456,52 +350,14 @@ export default function App() {
               <span>{isDismissed ? "Show Setup Guide" : "Hide Setup Guide"}</span>
             </button>
 
-            {/* Mode Indicators & Selectors */}
-            <div className="bg-slate-950 p-1 rounded-lg border border-slate-900 flex items-center gap-1">
-              <button
-                onClick={() => {
-                  setIsLiveMode(true);
-                  fetchLiveTasks();
-                }}
-                className={`px-3 py-1 text-xs rounded-md font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  isLiveMode 
-                    ? 'bg-rose-500 text-white shadow' 
-                    : 'text-gray-400 hover:text-gray-200'
-                }`}
-              >
-                <span className={`w-1.5 h-1.5 rounded-full ${isLiveMode ? 'bg-white animate-pulse' : 'bg-gray-500'}`} />
-                <span>Live Sync</span>
-              </button>
-              <button
-                onClick={() => {
-                  setIsLiveMode(false);
-                  setTasks(MOCK_TASKS);
-                  triggerNotification("Switched to Offline Sandbox Demo Mode.", "info");
-                }}
-                className={`px-3 py-1 text-xs rounded-md font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  !isLiveMode 
-                    ? 'bg-slate-800 text-white shadow' 
-                    : 'text-gray-400 hover:text-gray-200'
-                }`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                <span>Demo Mode</span>
-              </button>
-            </div>
-
             {/* Refresh/Sync button */}
             <button
               onClick={() => {
-                if (isLiveMode) {
-                  fetchLiveTasks();
-                } else {
-                  setTasks(MOCK_TASKS);
-                  triggerNotification("Restored default mock template tasks.", "success");
-                }
+                fetchLiveTasks();
               }}
               disabled={isLoading}
               className="p-2 rounded-lg bg-[#0d1222] hover:bg-slate-900 border border-slate-800 hover:border-slate-700 text-gray-400 hover:text-white transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center shrink-0"
-              title={isLiveMode ? "Synchronize with Todoist" : "Reset Demo tasks"}
+              title="Synchronize with Todoist"
             >
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-rose-500' : ''}`} />
             </button>
@@ -553,17 +409,6 @@ export default function App() {
                 >
                   <EyeOff className="w-3.5 h-3.5" />
                   <span>Hide Setup Info</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setIsLiveMode(false);
-                    setTasks(MOCK_TASKS);
-                    triggerNotification("Interactive mock playground prepared below.", "success");
-                  }}
-                  className="px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs text-gray-200 hover:text-white rounded-lg font-medium shadow shrink-0 flex items-center justify-center gap-2 cursor-pointer transition-colors"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Explore Interactive Demo</span>
                 </button>
               </div>
             </div>
@@ -848,10 +693,10 @@ export default function App() {
         <footer className="pt-6 border-t border-slate-800/50 pb-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500 font-light font-mono">
           <div>
             <span>Status: </span>
-            {isLiveMode ? (
+            {isConfigured ? (
               <span className="text-emerald-400 font-bold">● ONLINE SYNC ACTIVE</span>
             ) : (
-              <span className="text-amber-500 font-semibold">○ OFFLINE PLAYGROUND</span>
+              <span className="text-amber-500 font-semibold">○ AWAITING CONFIGURATION</span>
             )}
           </div>
           <div>
