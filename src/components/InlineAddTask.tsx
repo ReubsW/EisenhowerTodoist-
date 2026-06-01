@@ -45,7 +45,7 @@ export function InlineAddTask({ quadrant, onAddTask }: InlineAddTaskProps) {
     return (
       <button
         onClick={() => setIsEditing(true)}
-        className="w-full text-left py-2 px-3 border border-dashed border-slate-800 hover:border-slate-700/80 rounded-md bg-slate-900/40 text-gray-400 hover:text-gray-300 transition-all font-medium text-xs flex items-center gap-1.5 cursor-pointer hover:bg-slate-900/70"
+        className="w-full text-left py-2 px-3 border border-dashed border-gray-300 hover:border-gray-400 dark:border-slate-800 dark:hover:border-slate-700/80 rounded-md bg-gray-50 dark:bg-slate-900/40 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-all font-medium text-xs flex items-center gap-1.5 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-900/70"
       >
         <Plus className="w-3.5 h-3.5" />
         <span>Add a task here...</span>
@@ -54,7 +54,7 @@ export function InlineAddTask({ quadrant, onAddTask }: InlineAddTaskProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-[#12182b] border border-slate-800 rounded-md p-3 space-y-2.5 shadow-md">
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-[#12182b] border border-gray-200 dark:border-slate-800 rounded-md p-3 space-y-2.5 shadow-md">
       <div>
         <input
           ref={inputRef}
@@ -64,7 +64,7 @@ export function InlineAddTask({ quadrant, onAddTask }: InlineAddTaskProps) {
           onKeyDown={handleKeyDown}
           disabled={isSubmitting}
           placeholder="What needs to be done?"
-          className="w-full bg-[#0d1222] border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-rose-500/50 transition-colors"
+          className="w-full bg-gray-50 dark:bg-[#0d1222] border border-gray-200 dark:border-slate-800 rounded px-2.5 py-1.5 text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-rose-300 dark:focus:border-rose-500/50 transition-colors"
           required
         />
       </div>
@@ -76,7 +76,7 @@ export function InlineAddTask({ quadrant, onAddTask }: InlineAddTaskProps) {
           onKeyDown={handleKeyDown}
           disabled={isSubmitting}
           placeholder="Description (optional)"
-          className="w-full bg-[#0d1222] border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-rose-500/50 transition-colors"
+          className="w-full bg-gray-50 dark:bg-[#0d1222] border border-gray-200 dark:border-slate-800 rounded px-2.5 py-1.5 text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-rose-300 dark:focus:border-rose-500/50 transition-colors"
         />
       </div>
 
@@ -89,7 +89,7 @@ export function InlineAddTask({ quadrant, onAddTask }: InlineAddTaskProps) {
             setIsEditing(false);
           }}
           disabled={isSubmitting}
-          className="text-xs text-gray-400 hover:text-gray-200 px-2 py-1 rounded bg-slate-900/60 transition-colors disabled:opacity-50 cursor-pointer"
+          className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 px-2 py-1 rounded bg-gray-100 dark:bg-slate-900/60 transition-colors disabled:opacity-50 cursor-pointer"
         >
           Cancel
         </button>

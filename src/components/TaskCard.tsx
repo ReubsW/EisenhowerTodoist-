@@ -4,6 +4,34 @@ import { Check, Calendar } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useDraggable } from '@dnd-kit/core';
 
+function isOverdue(dateString: string): boolean {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Normalize to local midnight
+  const [yyyy, mm, dd] = dateString.split('T')[0].split('-');
+  if (!yyyy || !mm || !dd) return false;
+  const taskDate = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd), 0, 0, 0, 0);
+  return taskDate < today;
+}
+
+function formatDueDate(dateString: string): string {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const [yyyy, mm, dd] = dateString.split('T')[0].split('-');
+  if (!yyyy || !mm || !dd) return dateString;
+  const taskDate = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd), 0, 0, 0, 0);
+
+  if (taskDate.getTime() === today.getTime()) return "Today";
+  if (taskDate.getTime() === tomorrow.getTime()) return "Tomorrow";
+  if (taskDate.getTime() === yesterday.getTime()) return "Yesterday";
+
+  return taskDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
 interface TaskCardProps {
   task: TodoistTask;
   onUpdateQuadrant: (taskId: string, targetQuadrant: QuadrantType) => void;
@@ -82,7 +110,7 @@ export function TaskCard({
         style={style}
         {...listeners}
         {...attributes}
-        className={`relative group bg-[#0e111d]/50 hover:bg-[#13182a]/60 border border-[#1e293b]/50 hover:border-[#334155]/60 rounded-md py-1.5 pl-1.5 pr-2 shadow-sm cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-150 ${
+        className={`relative group bg-white dark:bg-[#0e111d]/50 hover:bg-gray-50 dark:hover:bg-[#13182a]/60 border border-gray-200 dark:border-[#1e293b]/50 hover:border-gray-300 dark:hover:border-[#334155]/60 rounded-md py-1.5 pl-1.5 pr-2 shadow-sm cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-150 ${
           isDragging ? 'opacity-40' : ''
         }`}
       >
@@ -113,7 +141,7 @@ export function TaskCard({
                 href={task.url}
                 target="_blank"
                 rel="noreferrer"
-                className={`block text-[11.5px] sm:text-[12px] font-medium text-slate-100 hover:text-rose-400 hover:underline transition-colors break-words overflow-hidden leading-snug ${
+                className={`block text-[11.5px] sm:text-[12px] font-medium text-gray-900 dark:text-slate-100 hover:text-rose-500 dark:hover:text-rose-400 hover:underline transition-colors break-words overflow-hidden leading-snug ${
                   showFullDetails ? '' : 'line-clamp-2'
                 }`}
                 title="Open in Todoist"
@@ -122,7 +150,7 @@ export function TaskCard({
               </a>
             ) : (
               <p
-                className={`text-[11.5px] sm:text-[12px] font-medium text-slate-100 break-words overflow-hidden leading-snug ${
+                className={`text-[11.5px] sm:text-[12px] font-medium text-gray-900 dark:text-slate-100 break-words overflow-hidden leading-snug ${
                   showFullDetails ? '' : 'line-clamp-2'
                 }`}
                 title={task.content}
@@ -132,7 +160,7 @@ export function TaskCard({
             )}
 
             {showFullDetails && task.description && (
-              <p className="text-[10px] sm:text-[10.5px] text-slate-400 break-words leading-relaxed mt-1 font-light bg-slate-950/40 p-1.5 rounded border border-slate-900/40">
+              <p className="text-[10px] sm:text-[10.5px] text-gray-500 dark:text-slate-400 break-words leading-relaxed mt-1 font-light bg-gray-50 dark:bg-slate-950/40 p-1.5 rounded border border-gray-100 dark:border-slate-900/40">
                 {task.description}
               </p>
             )}
@@ -143,19 +171,19 @@ export function TaskCard({
             <div className="flex flex-wrap items-center gap-1.5 mt-0.5 select-none text-[8.5px] leading-none">
               {/* Due date if active */}
               {task.due && (
-                <span className={`px-0.5 py-0.2 rounded border font-mono flex items-center gap-0.5 shrink-0 ${
-                  new Date(task.due.date) < new Date() && !task.is_completed
-                    ? 'text-rose-400 bg-rose-950/20 border-rose-500/30'
-                    : 'text-gray-400 bg-slate-800/40 border-slate-700/30'
+                <span className={`px-0.5 py-0.2 rounded border font-mono flex items-center gap-0.5 shrink-0 transition-colors ${
+                  isOverdue(task.due.date) && !task.is_completed
+                    ? 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/20 dark:border-rose-500/30 font-medium'
+                    : 'text-gray-500 bg-gray-50 border-gray-200 dark:text-gray-400 dark:bg-slate-800/40 dark:border-slate-700/30'
                 }`}>
-                  <Calendar className="w-2 h-2 shrink-0 text-gray-500" />
-                  <span className="truncate max-w-[70px]">{task.due.string}</span>
+                  <Calendar className={`w-2 h-2 shrink-0 ${isOverdue(task.due.date) && !task.is_completed ? 'text-rose-500/70 dark:text-rose-500/70' : 'text-gray-400 dark:text-gray-500'}`} />
+                  <span className="truncate max-w-[80px]">{formatDueDate(task.due.date)}</span>
                 </span>
               )}
 
               {/* Labels if any */}
               {task.labels && task.labels.slice(0, 2).map((lbl) => (
-                <span key={lbl} className="px-0.5 py-0.2 rounded bg-slate-800/20 border border-slate-700/30 text-slate-400 truncate max-w-[45px] shrink-0">
+                <span key={lbl} className="px-0.5 py-0.2 rounded bg-gray-100 bg-opacity-50 dark:bg-slate-800/20 border border-gray-200 dark:border-slate-700/30 text-gray-500 dark:text-slate-400 truncate max-w-[45px] shrink-0">
                   #{lbl}
                 </span>
               ))}
