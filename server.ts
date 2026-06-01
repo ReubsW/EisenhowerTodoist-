@@ -103,7 +103,7 @@ app.get("/api/config-status", async (req, res) => {
   if (isOk && token) {
     debugTokenValue = token.substring(0, Math.min(5, token.length)) + "..." + token.substring(Math.max(0, token.length - 4));
     try {
-      const response = await fetch("https://api.todoist.com/rest/v2/tasks", {
+      const response = await fetch("https://api.todoist.com/api/v1/tasks", {
         method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`
@@ -135,7 +135,7 @@ app.get("/api/get-tasks", async (req, res) => {
   }
 
   try {
-    const response = await fetch("https://api.todoist.com/rest/v2/tasks", {
+    const response = await fetch("https://api.todoist.com/api/v1/tasks", {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`
@@ -192,7 +192,7 @@ app.post("/api/create-task", async (req, res) => {
   }
 
   try {
-    const response = await fetch("https://api.todoist.com/rest/v2/tasks", {
+    const response = await fetch("https://api.todoist.com/api/v1/tasks", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -259,7 +259,7 @@ app.post("/api/update-task", async (req, res) => {
     if (content !== undefined) updateBody.content = content;
     if (description !== undefined) updateBody.description = description;
 
-    const response = await fetch(`https://api.todoist.com/rest/v2/tasks/${id}`, {
+    const response = await fetch(`https://api.todoist.com/api/v1/tasks/${id}`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -317,7 +317,7 @@ app.post("/api/complete-task", async (req, res) => {
   }
 
   try {
-    const response = await fetch(`https://api.todoist.com/rest/v2/tasks/${id}/close`, {
+    const response = await fetch(`https://api.todoist.com/api/v1/tasks/${id}/close`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`
@@ -360,7 +360,7 @@ app.post("/api/delete-task", async (req, res) => {
   }
 
   try {
-    const response = await fetch(`https://api.todoist.com/rest/v2/tasks/${id}`, {
+    const response = await fetch(`https://api.todoist.com/api/v1/tasks/${id}`, {
       method: "DELETE",
       headers: {
         "Authorization": `Bearer ${token}`

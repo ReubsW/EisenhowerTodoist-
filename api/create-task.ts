@@ -18,7 +18,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await fetch("https://api.todoist.com/rest/v2/tasks", {
+    const response = await fetch("https://api.todoist.com/api/v1/tasks", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`,
