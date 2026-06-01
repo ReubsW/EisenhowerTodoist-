@@ -406,12 +406,12 @@ export default function App() {
 
         {/* Dynamic global Notification Toast */}
         {notification.message && (
-          <div className={`p-3.5 border rounded-lg flex items-center gap-3 shadow-lg max-w-2xl mx-auto w-full transition-all duration-300 font-mono text-xs ${
+          <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 p-3.5 border rounded-lg flex items-center gap-3 shadow-2xl max-w-lg w-[90%] transition-all duration-300 font-mono text-xs ${
             notification.type === 'success' 
-              ? 'bg-emerald-950/20 border-emerald-500/20 text-emerald-300' 
+              ? 'bg-emerald-950/90 border-emerald-500/30 text-emerald-300 backdrop-blur-md' 
               : notification.type === 'error'
-              ? 'bg-rose-950/20 border-rose-500/20 text-rose-300'
-              : 'bg-slate-900 border-slate-700 text-slate-300'
+              ? 'bg-rose-950/90 border-rose-500/30 text-rose-300 backdrop-blur-md'
+              : 'bg-slate-900/90 border-slate-700/80 text-slate-300 backdrop-blur-md'
           }`}>
             <AlertCircle className={`w-4 h-4 shrink-0 ${notification.type === 'error' ? 'text-rose-400' : notification.type === 'success' ? 'text-emerald-400' : 'text-slate-400'}`} />
             <div className="flex-1 text-[11px] leading-relaxed">{notification.message}</div>
