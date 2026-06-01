@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { TodoistTask, QuadrantType, getQuadrantFromTodoistPriority, getTodoistPriorityFromQuadrant, QUADRANTS } from './types';
 import { QuadrantBox } from './components/QuadrantBox';
-import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { TaskCard } from './components/TaskCard';
+import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay } from '@dnd-kit/core';
 import { 
   CheckCircle, 
   RefreshCw, 
@@ -56,16 +57,19 @@ export default function App() {
     return false;
   });
 
+  const [activeTask, setActiveTask] = useState<TodoistTask | null>(null);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },
     }),
     useSensor(TouchSensor, {
-      activationConstraint: { delay: 250, tolerance: 5 },
+      activationConstraint: { delay: 150, tolerance: 5 },
     })
   );
 
   const handleDragEnd = (event: DragEndEvent) => {
+    setActiveTask(null);
     const { active, over } = event;
     if (over && active) {
       const taskId = String(active.id);
@@ -87,8 +91,14 @@ export default function App() {
     setMaximizedQuadrant(prev => prev === quadrant ? null : quadrant);
   };
 
-  const handleDragStartTask = () => {
+  const handleDragStart = (event: DragStartEvent) => {
     setMaximizedQuadrant(null);
+    const { active } = event;
+    const taskId = String(active.id);
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      setActiveTask(task);
+    }
   };
 
   // Set up auto-fading notifications
@@ -505,7 +515,7 @@ export default function App() {
               <p className="text-sm font-mono text-gray-400">Communicating with backend services...</p>
             </div>
           ) : (
-            <DndContext sensors={sensors} onDragStart={handleDragStartTask} onDragEnd={handleDragEnd}>
+            <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
               <div className={maximizedQuadrant ? "w-full pb-2 animate-in fade-in zoom-in-95 duration-200" : "grid grid-cols-2 lg:grid-cols-[36px_1fr_1fr] gap-2 sm:gap-3.5 pb-2"}>
                 {/* Row 0: Column Labels (Only visible on lg screens and when not maximized) */}
                 {!maximizedQuadrant && (
@@ -541,7 +551,7 @@ export default function App() {
                   onAddTask={handleAddTask}
                   isMaximized={maximizedQuadrant === 'Q1'}
                   onToggleMaximize={() => handleToggleMaximize('Q1')}
-                  onDragStartTask={handleDragStartTask}
+                  onDragStartTask={() => {}}
                   isHidden={maximizedQuadrant !== null && maximizedQuadrant !== 'Q1'}
                 />
 
@@ -555,7 +565,7 @@ export default function App() {
                   onAddTask={handleAddTask}
                   isMaximized={maximizedQuadrant === 'Q2'}
                   onToggleMaximize={() => handleToggleMaximize('Q2')}
-                  onDragStartTask={handleDragStartTask}
+                  onDragStartTask={() => {}}
                   isHidden={maximizedQuadrant !== null && maximizedQuadrant !== 'Q2'}
                 />
 
@@ -578,7 +588,7 @@ export default function App() {
                   onAddTask={handleAddTask}
                   isMaximized={maximizedQuadrant === 'Q3'}
                   onToggleMaximize={() => handleToggleMaximize('Q3')}
-                  onDragStartTask={handleDragStartTask}
+                  onDragStartTask={() => {}}
                   isHidden={maximizedQuadrant !== null && maximizedQuadrant !== 'Q3'}
                 />
 
@@ -592,10 +602,20 @@ export default function App() {
                   onAddTask={handleAddTask}
                   isMaximized={maximizedQuadrant === 'Q4'}
                   onToggleMaximize={() => handleToggleMaximize('Q4')}
-                  onDragStartTask={handleDragStartTask}
+                  onDragStartTask={() => {}}
                   isHidden={maximizedQuadrant !== null && maximizedQuadrant !== 'Q4'}
                 />
               </div>
+              <DragOverlay>
+                {activeTask ? (
+                  <TaskCard
+                    task={activeTask}
+                    onUpdateQuadrant={() => {}}
+                    onCompleteTask={() => {}}
+                    onDeleteTask={() => {}}
+                  />
+                ) : null}
+              </DragOverlay>
             </DndContext>
           )}
         </div>
