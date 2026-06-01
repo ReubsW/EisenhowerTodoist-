@@ -606,7 +606,7 @@ export default function App() {
                   isHidden={maximizedQuadrant !== null && maximizedQuadrant !== 'Q4'}
                 />
               </div>
-              <DragOverlay>
+              <DragOverlay dropAnimation={null}>
                 {activeTask ? (
                   <TaskCard
                     task={activeTask}
