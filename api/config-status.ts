@@ -1,4 +1,4 @@
-import { getTodoistToken } from "./_utils";
+const { getTodoistToken } = require("./_utils");
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
